@@ -1,5 +1,6 @@
 import './App.css'
 import BarraNavegacion from './components/BarraNavegacion/BarraNavegacion'
+import BotonColor from './components/BotonColor/BotonColor'
 
 import SeccionBienvenida from './components/SeccionBienvenida/SeccionBienvenida'
 import TarjetaCurso from './components/TarjetaCurso/TarjetaCurso'
@@ -22,7 +23,7 @@ function App() {
         <Row className='g-3'>
           <Col md={6}>
             <SeccionBienvenida titulo="Pilar Tecno" descripcion='Bienvenido a nuestra plataforma de aprendizaje' />
-            
+            <BotonColor />
           </Col>
           <Col md={6}>
             <h2>Nuestros Cursos</h2>
