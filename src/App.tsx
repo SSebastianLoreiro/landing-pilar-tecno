@@ -1,6 +1,8 @@
 import './App.css'
 import BarraNavegacion from './components/BarraNavegacion/BarraNavegacion'
 
+import SeccionBienvenida from './components/SeccionBienvenida/SeccionBienvenida'
+import TarjetaCurso from './components/TarjetaCurso/TarjetaCurso'
 import { Container, Row, Col } from "react-bootstrap"
 
 function App() {
@@ -19,7 +21,7 @@ function App() {
       <Container className='mt-4'>
         <Row className='g-3'>
           <Col md={6}>
-            <h1>Pilar Tecno</h1><p>Bienvenido a nuestra plataforma de aprendizaje</p>
+            <SeccionBienvenida titulo="Pilar Tecno" descripcion='Bienvenido a nuestra plataforma de aprendizaje' />
             
           </Col>
           <Col md={6}>
@@ -29,7 +31,7 @@ function App() {
         </Row>
         <Row className='g-3'>
           {cursos.map(curso => (
-            <Col md={6} key={curso.id}><article><h3>{curso.nombre}</h3><p>{curso.descripcion}</p></article></Col>
+            <Col md={6} key={curso.id}><TarjetaCurso id={curso.id} nombre={curso.nombre} descripcion={curso.descripcion} /></Col>
           ))}
         </Row>
       </Container >
