@@ -24,6 +24,10 @@ export const obtenerProductoPorId = async (id: string, signal?: AbortSignal): Pr
     return respuesta.data;
 };
 
+export const eliminarProducto = async (id: string): Promise<void> => {
+    await api.delete(`/${encodeURIComponent(id)}`);
+};
+
 export const obtenerMensajeError = (error: unknown, mensaje: string): string => {
     if (axios.isAxiosError(error)) {
         if (!error.response) {
