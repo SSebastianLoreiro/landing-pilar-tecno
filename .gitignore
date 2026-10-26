@@ -39,3 +39,8 @@ credentials.json
 
 # Cache local de PowerShell
 Microsoft/
+
+# Resultados de pruebas automatizadas
+test-results/
+playwright-report/
+blob-report/
