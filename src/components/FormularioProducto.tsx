@@ -1,117 +1,96 @@
+import { useState } from "react";
 import { useFormik } from "formik";
+import { Alert, Button, Col, Form, Row, Spinner } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
 import type { NuevoProducto } from "../types/Producto";
-import * as Yup from "yup";
-import { crearProducto } from "../services/ProductoService";
+import { crearProducto, obtenerMensajeError } from "../services/ProductoService";
+import { productoSchema } from "../validations/productoSchema";
 
-const productoSchema = Yup.object({
-    nombre: Yup.string()
-        .required("El nombre es obligatorio")
-        .min(3, "El nombre debe tener al menos 3 caracteres"),
-    descripcion: Yup.string()
-        .min(5, "La descripción debe tener al menos 5 caracteres"),
-    precio: Yup.number()
-        .required("El precio es obligatorio")
-        .integer("El precio debe ser entero")
-        .positive("El precio debe ser mayor que 0"),
-    cantidad: Yup.number()
-        .required("La cantidad es obligatoria")
-        .integer("La cantidad debe ser entera")
-        .min(0, "La cantidad no puede ser negativa"),
-    categoria: Yup.string()
-        .min(5, "La categoria debe tener al menos 5 caracteres")
-});
+type FormularioProductoProps = {
+    valoresIniciales?: NuevoProducto;
+    onGuardar?: (datos: NuevoProducto) => Promise<unknown>;
+    modo?: "crear" | "editar";
+};
 
-const FormularioProducto = () => {
+const productoVacio: NuevoProducto = {
+    nombre: "", descripcion: "", precio: 0, cantidad: 0, categoria: "",
+};
+
+const FormularioProducto = ({ valoresIniciales, onGuardar = crearProducto, modo = "crear" }: FormularioProductoProps) => {
+    const navigate = useNavigate();
+    const [error, setError] = useState("");
     const formik = useFormik<NuevoProducto>({
-        initialValues: {
-            nombre: "",
-            descripcion: "",
-            precio: 0,
-            cantidad: 0,
-            categoria: ""
-        },
-        onSubmit: async (values, { resetForm }) => {
+        initialValues: valoresIniciales ?? productoVacio,
+        enableReinitialize: true,
+        validationSchema: productoSchema,
+        onSubmit: async (valores) => {
+            setError("");
             try {
-                await crearProducto(values);
-                console.log("submit exitoso");
-                resetForm();
-            } catch (error) {
-                console.error(error);
+                const datos = await productoSchema.validate(valores, { stripUnknown: true });
+                await onGuardar(datos);
+                navigate("/productos", {
+                    replace: true,
+                    state: { mensaje: modo === "editar" ? "Producto actualizado correctamente." : "Producto creado correctamente." },
+                });
+            } catch (causa) {
+                setError(obtenerMensajeError(causa, "No se pudo guardar el producto. Intentá nuevamente."));
             }
         },
-        validationSchema: productoSchema,
-
     });
-    return <> <h2>Crear Producto</h2>
-        <form onSubmit={formik.handleSubmit}>
-            <label htmlFor="nombre">Nombre</label>
 
-            <input
-                id="nombre"
-                name="nombre"
-                type="text"
-                value={formik.values.nombre}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-            />
-            {formik.touched.nombre && formik.errors.nombre && (
-                <p className="text-danger">{formik.errors.nombre}</p>
-            )}
-            <label htmlFor="descripcion">Descripcion</label>
-            <input
-                id="descripcion"
-                name="descripcion"
-                type="text"
-                value={formik.values.descripcion}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-            />
-            {formik.touched.descripcion && formik.errors.descripcion && (
-                <p className="text-danger">{formik.errors.descripcion}</p>
-            )}
-            <label htmlFor="precio">precio</label>
+    const campos: { nombre: keyof NuevoProducto; etiqueta: string; tipo: "text" | "number"; obligatorio?: boolean }[] = [
+        { nombre: "nombre", etiqueta: "Nombre", tipo: "text", obligatorio: true },
+        { nombre: "descripcion", etiqueta: "Descripción (opcional)", tipo: "text" },
+        { nombre: "precio", etiqueta: "Precio", tipo: "number", obligatorio: true },
+        { nombre: "cantidad", etiqueta: "Cantidad", tipo: "number", obligatorio: true },
+        { nombre: "categoria", etiqueta: "Categoría (opcional)", tipo: "text" },
+    ];
 
-            <input
-                id="precio"
-                name="precio"
-                type="number"
-                value={formik.values.precio}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-            />
-            {formik.touched.precio && formik.errors.precio && (
-                <p className="text-danger">{formik.errors.precio}</p>
-            )}
-            <label htmlFor="cantidad">cantidad</label>
-
-            <input
-                id="cantidad"
-                name="cantidad"
-                type="number"
-                value={formik.values.cantidad}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-            />
-            {formik.touched.cantidad && formik.errors.cantidad && (
-                <p className="text-danger">{formik.errors.cantidad}</p>
-            )}
-            <label htmlFor="categoria">categoria</label>
-
-            <input
-                id="categoria"
-                name="categoria"
-                type="text"
-                value={formik.values.categoria}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-            />
-            {formik.touched.categoria && formik.errors.categoria && (
-                <p className="text-danger">{formik.errors.categoria}</p>
-            )}
-            <button type="submit">Guardar producto</button>
-        </form>
-    </>
+    return <section className="mx-auto mb-5" style={{ maxWidth: 760 }} aria-labelledby="titulo-formulario">
+        <h1 id="titulo-formulario">{modo === "editar" ? "Editar producto" : "Nuevo producto"}</h1>
+        <p>Completá los campos obligatorios: nombre, precio y cantidad.</p>
+        {error && <Alert variant="danger" role="alert">{error}</Alert>}
+        <Form noValidate onSubmit={formik.handleSubmit} aria-busy={formik.isSubmitting}>
+            <fieldset disabled={formik.isSubmitting}>
+                <Row className="g-3">
+                    {campos.map(({ nombre, etiqueta, tipo, obligatorio }) => {
+                        const invalido = Boolean(formik.touched[nombre] && formik.errors[nombre]);
+                        return <Col xs={12} md={tipo === "number" ? 6 : 12} key={nombre}>
+                            <Form.Group controlId={nombre}>
+                                <Form.Label>{etiqueta}</Form.Label>
+                                <Form.Control
+                                    name={nombre}
+                                    type={tipo}
+                                    value={formik.values[nombre] ?? ""}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    required={obligatorio}
+                                    min={tipo === "number" ? (nombre === "precio" ? 1 : 0) : undefined}
+                                    step={tipo === "number" ? 1 : undefined}
+                                    isInvalid={invalido}
+                                    aria-invalid={invalido}
+                                    aria-describedby={invalido ? `${nombre}-error` : undefined}
+                                />
+                                <Form.Control.Feedback type="invalid" id={`${nombre}-error`}>
+                                    {formik.errors[nombre]}
+                                </Form.Control.Feedback>
+                            </Form.Group>
+                        </Col>;
+                    })}
+                </Row>
+                <div className="d-flex flex-wrap gap-2 mt-4">
+                    <Button type="submit" disabled={formik.isSubmitting}>
+                        {formik.isSubmitting && <Spinner size="sm" aria-hidden="true" className="me-2" />}
+                        {formik.isSubmitting ? "Guardando…" : modo === "editar" ? "Guardar cambios" : "Guardar producto"}
+                    </Button>
+                    <Button type="button" variant="outline-secondary" onClick={() => navigate("/productos")}>
+                        Volver al listado
+                    </Button>
+                </div>
+            </fieldset>
+        </Form>
+        {error && <Link className="d-inline-block mt-3" to="/productos">Volver al listado sin guardar</Link>}
+    </section>;
 };
 
 export default FormularioProducto;
-
