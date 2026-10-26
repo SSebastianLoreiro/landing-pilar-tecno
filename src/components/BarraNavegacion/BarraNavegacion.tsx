@@ -1,4 +1,5 @@
 import { Navbar, Nav, Container } from "react-bootstrap"
+import { Link } from "react-router-dom"
 
 const BarraNavegacion = () => {
     return <>
@@ -8,9 +9,9 @@ const BarraNavegacion = () => {
                 <Navbar.Toggle aria-controls="navbar-principal"></Navbar.Toggle>
                 <Navbar.Collapse id="navbar-principal">
                     <Nav className="ms-auto">
-                        <Nav.Link href="#inicio">Inicio</Nav.Link>
+                        <Nav.Link as={Link} to="/">Inicio</Nav.Link>
                         <Nav.Link href="#cursos">Cursos</Nav.Link>
-                        <Nav.Link href="#contacto">Contacto</Nav.Link>
+                        <Nav.Link as={Link} to="/productos">Productos</Nav.Link>
                     </Nav>
                 </Navbar.Collapse>
             </Container>
