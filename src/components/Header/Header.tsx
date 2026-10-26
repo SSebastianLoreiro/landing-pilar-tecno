@@ -15,7 +15,7 @@ const Header = () => {
         setContador(contador + 1);
     }
     return <>
-        <h1>Clase 7 de React!</h1>
+        <h1>2do Entregable</h1>
         <button onClick={handleClick}>Contador: {contador}</button>
     </>
 }
