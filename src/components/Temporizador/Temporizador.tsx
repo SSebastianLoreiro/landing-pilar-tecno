@@ -16,7 +16,7 @@ const Temporizador = () => {
     }
     useEffect(() => {
         if (activo == true) {
-            let intervalo = setInterval(() => {
+            const intervalo = setInterval(() => {
                 setSegundos(anterior => anterior + 1)
             }, 1000)
             return () => {
